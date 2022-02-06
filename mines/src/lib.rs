@@ -14,8 +14,6 @@ pub mod mines {
         cells_amount: i32,
         width: i32,
         height: i32,
-        on_defeat: fn(),
-        on_win: fn(),
     }
 
     impl Display for Board {
@@ -48,8 +46,6 @@ pub mod mines {
             width: i32,
             height: i32,
             mines: i32,
-            on_defeat: fn(),
-            on_win: fn(),
         ) -> Result<Self, &'static str> {
             if mines > width * height {
                 return Err("Too many mines");
@@ -63,8 +59,6 @@ pub mod mines {
                 cells_amount: width * height,
                 width: width,
                 height: height,
-                on_defeat: on_defeat,
-                on_win: on_win,
             };
             for i in 0..mines {
                 let mut cell = board.serial_to_coord(rng.gen_range(0..board.cells_amount));
@@ -80,6 +74,10 @@ pub mod mines {
             Ok(board)
         }
 
+        pub fn get_state(&self) -> &Vec<Vec<Cell>> {
+            &self.cells
+        }
+
         pub fn uncover(&mut self, x: i32, y: i32) {
             let cell = &mut self.cells[y as usize][x as usize];
             cell.uncover();
@@ -92,7 +90,6 @@ pub mod mines {
                         j.uncover();
                     }
                 }
-                (self.on_defeat)();
             } else {
                 for i in self.get_neighbors(x, y) {
                     let next_cell = &mut self.cells[i.1 as usize][i.0 as usize];
@@ -144,7 +141,7 @@ pub mod mines {
     }
 
     #[derive(Clone)]
-    struct Cell {
+    pub struct Cell {
         state: u8,
         neighbor_mines: u8,
     }
@@ -190,18 +187,23 @@ pub mod mines {
         }
 
         #[inline]
-        fn has_flag(&self) -> bool {
+        pub fn has_flag(&self) -> bool {
             (self.state & FLAG_MASK) == FLAG_MASK
         }
 
         #[inline]
-        fn has_mine(&self) -> bool {
+        pub fn has_mine(&self) -> bool {
             (self.state & MINE_MASK) == MINE_MASK
         }
 
         #[inline]
-        fn is_covered(&self) -> bool {
+        pub fn is_covered(&self) -> bool {
             (self.state & COVER_MASK) == COVER_MASK
+        }
+
+        #[inline]
+        pub fn get_neighbor_amount(&self) -> i32 {
+            self.neighbor_mines as i32
         }
 
         #[inline]
